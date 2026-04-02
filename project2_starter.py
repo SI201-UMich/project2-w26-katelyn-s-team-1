@@ -41,7 +41,34 @@ def load_listing_results(html_path) -> list[tuple]:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    results = []
+
+    # Opens the html file
+    with open(html_path, "r", encoding="utf-8-sig") as f:
+        html = f.read()
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    # Find all the 'a' tags
+    all_links = soup.find_all("a")
+
+    for link_tag in all_links:
+        href = link_tag.get("href")
+
+        # Gets the id number
+        if href is not None and "/rooms/" in href:
+            listing_id = href.replace("/rooms/", "")
+            listing_id = listing_id.split("?")[0]
+            listing_id = listing_id.strip("/")
+
+            # Gets the title text
+            title = link_tag.get_text().strip()
+            
+            # Only add if the id is numbers
+            if listing_id.isdigit():
+                results.append((title, listing_id))
+
+    return results
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
