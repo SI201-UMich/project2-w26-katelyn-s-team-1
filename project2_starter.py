@@ -237,7 +237,29 @@ def output_csv(data, filename) -> None:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+
+    # Sort the data by location rating w/ highest first
+    sorted_data = sorted(data, key=lambda x: x[6], reverse=True)
+
+    # Open the csv file to write to
+    with open(filename, "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.writer(f)
+
+        # Write header row
+        writer.writerow([
+            "Listing Title",
+            "Listing ID",
+            "Policy Number",
+            "Host Type",
+            "Host Name",
+            "Room Type",
+            "Location Rating"
+        ])
+
+        # Write each tuple as a row in the csv
+        for item in sorted_data:
+            writer.writerow(item)
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -260,7 +282,40 @@ def avg_location_rating_by_room_type(data) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+
+    # Store the total ratings and counts
+    room_type_totals = {}
+    room_type_counts = {}
+
+    # Go through each tuple in the data list
+    for item in data:
+        room_type = item[5]
+        rating = item[6]
+
+        # Skip listings that have no rating
+        if rating == 0.0:
+            continue
+
+        # Set up room type if not added 
+        if room_type not in room_type_totals:
+            room_type_totals[room_type] = 0.0
+            room_type_counts[room_type] = 0
+
+        # Add the rating and increase the count
+        room_type_totals[room_type] += rating
+        room_type_counts[room_type] += 1
+
+    # Calc the average for each room type
+    averages = {}
+
+    for room_type in room_type_totals:
+        total = room_type_totals[room_type]
+        count = room_type_counts[room_type]
+        avg = total / count
+        averages[room_type] = avg
+
+    return averages
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -281,7 +336,49 @@ def validate_policy_numbers(data) -> list[str]:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+
+    # Store ids with invalid policy numbers
+    invalid_ids = []
+
+    # Go through each tuple in the list
+    for item in data:
+        listing_id = item[1]
+        policy_number = item[2]
+
+        # Skip pending and exempt
+        if policy_number == "Pending" or policy_number == "Exempt":
+            continue
+
+        # Check the two valid formats:
+        # 1- 20##-00####STR
+        # 2- STR-000####
+        valid_format_1 = False
+        valid_format_2 = False
+
+        # Check format 1
+        if len(policy_number) == 15:
+            if policy_number[0:2] == "20":
+                if policy_number[2:4].isdigit():
+                    if policy_number[4] == "-":
+                        if policy_number[5:7] == "00":
+                            if policy_number[7:11].isdigit():
+                                if policy_number[11:14] == "STR":
+                                    valid_format_1 = True
+
+        # Check format 2
+        if len(policy_number) == 11:
+            if policy_number[0:3] == "STR":
+                if policy_number[3] == "-":
+                    if policy_number[4:7] == "000":
+                        if policy_number[7:11].isdigit():
+                            valid_format_2 = True
+
+        # If none matches, add listing id to invalid list
+        if not valid_format_1 and not valid_format_2:
+            invalid_ids.append(listing_id)
+
+    return invalid_ids
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -301,7 +398,29 @@ def google_scholar_searcher(query):
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+
+    base_url = "https://scholar.google.com/scholar"
+    params = {"q": query}
+
+    # Send req to Google Scholar
+    response = requests.get(base_url, params=params)
+    soup = BeautifulSoup(response.text, "html.parser")
+    titles = []
+
+    # Scholar puts each req inside h3 tag with below class
+    h3_tags = soup.find_all("h3", class_="gs_rt")
+
+    # Go through each h3 tag and extract the text
+    for tag in h3_tags:
+        if tag.a is not None:
+            title_text = tag.a.get_text().strip()
+        else:
+            title_text = tag.get_text().strip()
+
+        titles.append(title_text)
+
+    return titles
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
