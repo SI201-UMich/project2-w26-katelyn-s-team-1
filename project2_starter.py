@@ -63,7 +63,7 @@ def load_listing_results(html_path) -> list[tuple]:
 
             # Gets the title text
             title = link_tag.get_text().strip()
-            
+
             # Only add if the id is numbers
             if listing_id.isdigit():
                 results.append((title, listing_id))
@@ -97,7 +97,77 @@ def get_listing_details(listing_id) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+
+    # Opens correct listing file
+    filename = "listing_" + listing_id + ".html"
+    with open(filename, "r", encoding="utf-8-sig") as f:
+        soup = BeautifulSoup(f, "html.parser")
+
+    # Finds the policy number
+    policy_number = "Pending"
+    policy_label = soup.find(string=lambda text: text and "license number" in text.lower())
+    if policy_label is not None:
+        next_tag = policy_label.find_next()
+        if next_tag is not None:
+            raw_policy_text = next_tag.get_text().strip()
+            # check what type of policy number it is
+            if "pending" in raw_policy_text.lower():
+                policy_number = "Pending"
+            elif "exempt" in raw_policy_text.lower():
+                policy_number = "Exempt"
+            else:
+                policy_number = raw_policy_text
+
+    # Finds the host name and host type
+    host_name = ""
+    host_type = "regular"
+
+    host_label = soup.find(string=lambda text: text and "hosted by" in text.lower())
+    if host_label is not None:
+        cleaned_host_text = host_label.strip()
+        cleaned_host_text = cleaned_host_text.replace("Hosted by", "")
+        cleaned_host_text = cleaned_host_text.replace("hosted by", "")
+        cleaned_host_text = cleaned_host_text.strip()
+        host_name = cleaned_host_text
+
+    superhost_text = soup.find(string=lambda text: text and "superhost" in text.lower())
+    if superhost_text is not None:
+        host_type = "Superhost"
+
+    # Finds the room type
+    room_type = "Entire Room"
+    subtitle_text = soup.find(string=lambda text: text and ("private" in text.lower() or "shared" in text.lower()))
+    if subtitle_text is not None:
+        subtitle_text_lower = subtitle_text.lower()
+        if "private" in subtitle_text_lower:
+            room_type = "Private Room"
+        elif "shared" in subtitle_text_lower:
+            room_type = "Shared Room"
+
+    # Finds the location rating
+    location_rating = 0.0
+    all_text_words = soup.get_text().split()
+
+    # Go through every word to see if any look like a rating
+    for word in all_text_words:
+        if word.count(".") == 1:
+            parts = word.split(".")
+            if parts[0].isdigit() and parts[1].isdigit():
+                num_rating = float(word)
+                if num_rating >= 1.0 and num_rating <= 5.0:
+                    location_rating = num_rating
+
+    # Return the dictionary with all the info
+    return {
+        listing_id: {
+            "policy_number": policy_number,
+            "host_type": host_type,
+            "host_name": host_name,
+            "room_type": room_type,
+            "location_rating": location_rating
+        }
+    }
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -118,7 +188,33 @@ def create_listing_database(html_path) -> list[tuple]:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+
+    # Gets the list from first function
+    results = []
+    listing_list = load_listing_results(html_path)
+
+    # Goes through each listing
+    for item in listing_list:
+        title = item[0]
+        listing_id = item[1]
+
+        # Gets the details dictionary for this listing
+        details = get_listing_details(listing_id)
+        info = details[listing_id]
+
+        policy = info["policy_number"]
+        host_type = info["host_type"]
+        host_name = info["host_name"]
+        room_type = info["room_type"]
+        rating = info["location_rating"]
+
+        # Make the tuple in this order
+        tup = (title, listing_id, policy, host_type, host_name, room_type, rating)
+
+        results.append(tup)
+
+    return results
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
