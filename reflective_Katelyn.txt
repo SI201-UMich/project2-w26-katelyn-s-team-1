@@ -1,0 +1,15 @@
+In this project, I realized that the accountability system for short term rentals in San Francisco isn't very strong. 
+Since the city only checks listings after someone complains,a lot of missing policy numbers can go unnoticed. 
+After scraping the data, I saw how easy it is for hosts to enter anything they want. I think a better system would require 
+Airbnbto verify policy nums before a listing goes live. That would shift the responsibility to the platform. This also 
+fits with the idea in the SWE Code of Ethics about making systems more trustworthy.
+
+While working on this project, I also learned about the legality of web scraping in US and how it's unclear. One factor 
+is whether the data is truly public and accessed without bypassinganything. Some court cases say scraping public pages 
+is allowed, while others say it can violate the Computer Fraud and Abuse act. This matters because scraping can be useful 
+but it can also cross legal lines without people realizing.
+
+Finally, scraping public data isn't ethical all the time. An example like Clearciew AI shows how data can be used in ways 
+people never expected. Two guidelines I think are important are: 1: only scrape data when the purpose is responsible and 
+benefits people. 2: consider whether people would reasonably expect their data to be collected and analyzed. This project 
+helped me see both the technical and ethical sides of scraping.
